@@ -1,0 +1,11 @@
+# ============================================================================
+# Example variables for Terraform state bucket leaf
+# ============================================================================
+# Copy to terraform.tfvars and set values. Do not commit terraform.tfvars.
+
+container_name         = "terraform-state"
+container_archive_name = "terraform-state-archive"  # set to "" to skip
+region                 = "RegionOne"                  # or leave "" to use OS_REGION_NAME
+metadata = {
+  purpose = "terraform-remote-state"
+}

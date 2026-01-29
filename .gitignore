@@ -1,0 +1,25 @@
+# Local Terraform state (optional: later move to remote)
+*.tfstate
+*.tfstate.*
+tfplan
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Sensitive files
+*.tfvars
+!terraform.tfvars.example
+.env
+.env.*
+!.env.*.example
+
+# IDE
+.idea/
+*.swp
+*.swo
+.DS_Store
