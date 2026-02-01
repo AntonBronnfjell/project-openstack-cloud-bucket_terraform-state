@@ -11,22 +11,37 @@ No S3-specific resources are created here. If your OpenStack cloud exposes an S3
 
 ## Requirements
 
-- OpenStack with **Object Storage (Swift) enabled**. If you see *"No suitable endpoint could be found in the service catalog"* when applying, Swift is not enabled on your cloud.
-  - For OpenStack-Ansible (e.g. `tooling-openstack-infra-ansible_graphicsforge-infrastructure`): set `swift_enabled: true` in `etc/openstack_deploy/user_variables.yml` and run the playbooks to deploy Swift, then run this repo’s `terraform apply` again.
-- Terraform >= 1.0 and [terraform-provider-openstack](https://registry.terraform.io/providers/terraform-provider-openstack/openstack/latest) ~> 1.54.
+- **Terraform-managed Swift:** If Swift is not yet on your OpenStack cloud, set `swift_deploy_enabled = true` and ensure **SSH key access** to the OpenStack host (default `root@192.168.2.3`). One `terraform apply` will deploy Swift on that host via SSH, then create the containers.
+- If Swift is already deployed, set `swift_deploy_enabled = false` and run `terraform apply` to only create the containers.
+- Terraform >= 1.0, [terraform-provider-openstack](https://registry.terraform.io/providers/terraform-provider-openstack/openstack/latest) ~> 1.54, and [null](https://registry.terraform.io/providers/hashicorp/null/latest) ~> 3.0.
 - Auth: `OS_CLOUD` (and `clouds.yaml`) or `OS_AUTH_URL`, `OS_USERNAME`, `OS_PASSWORD`, `OS_TENANT_NAME`, `OS_REGION_NAME`.
 
-## Usage
+## Deploy the bucket (one-time)
 
-1. Copy `terraform.tfvars.example` to `terraform.tfvars` and set `container_name`, optional `container_archive_name`, and `region`.
-2. Ensure OpenStack env vars (or `OS_CLOUD`) are set.
-3. Run:
+From a machine where **SSH to the OpenStack host works** (e.g. `ssh root@192.168.2.3`):
 
+1. **Set up SSH** (if not already):
    ```bash
-   terraform init
-   terraform plan
-   terraform apply
+   ssh-copy-id root@192.168.2.3
    ```
+   Or use a key file and set `swift_deploy_ssh_private_key_path` in `terraform.tfvars`.
+
+2. **Apply** (deploys Swift on 192.168.2.3, then creates the containers):
+   ```bash
+   cd project-openstack-cloud-bucket_terraform-state
+   terraform init && terraform apply -auto-approve
+   ```
+
+That’s it. No separate shell scripts; one `terraform apply` until the bucket is deployed.
+
+## Usage (Terraform-managed)
+
+1. Copy `terraform.tfvars.example` to `terraform.tfvars` and set `container_name`, optional `container_archive_name`, `region`, and Swift deploy vars (`swift_deploy_ssh_host` = `192.168.2.3`, `swift_deploy_ssh_user`, optional `swift_deploy_ssh_private_key_path`).
+2. Ensure **SSH to the OpenStack host** works (e.g. `ssh root@192.168.2.3`). If using a key, set `swift_deploy_ssh_private_key_path` in `terraform.tfvars`.
+3. Ensure OpenStack env vars (or `OS_CLOUD`) are set for the provider.
+4. Run `terraform init` then `terraform apply`.
+
+With `swift_deploy_enabled = true`, Terraform runs the Swift deployment on the host (clone infra repo, bootstrap Ansible, `os-swift-install.yml`), then creates the Swift containers.
 
 This repo’s own state is **local** by default (e.g. `terraform.tfstate` in the repo, ignored by `.gitignore`). You can later move it to the same Swift container (e.g. key `bucket-repo/terraform.tfstate`) once the backend is configured.
 

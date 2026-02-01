@@ -12,13 +12,19 @@ terraform {
       source  = "terraform-provider-openstack/openstack"
       version = "~> 1.54"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
   }
 
-  # This repo's state stays local initially. Optionally migrate to the same
-  # container (e.g. key = "bucket-repo/terraform.tfstate") after backend is set.
-  backend "local" {}
+  # Backend: s3 (OpenStack Swift S3-compatible bucket). Config via -backend-config=backend.s3.hcl
+  # See backend.s3.hcl for configuration details.
+  backend "s3" {}
 }
 
 provider "openstack" {
   # Uses OS_* env vars or OS_CLOUD (clouds.yaml)
 }
+
+provider "null" {}

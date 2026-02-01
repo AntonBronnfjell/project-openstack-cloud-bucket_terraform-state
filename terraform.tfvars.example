@@ -9,3 +9,11 @@ region                 = "RegionOne"                  # or leave "" to use OS_RE
 metadata = {
   purpose = "terraform-remote-state"
 }
+
+# Terraform-managed Swift deploy (runs on OpenStack host 192.168.2.3 via SSH)
+# Set swift_deploy_enabled = false if Swift is already deployed.
+swift_deploy_enabled   = true
+swift_deploy_ssh_host  = "192.168.2.3"
+swift_deploy_ssh_user  = "root"
+# swift_deploy_ssh_private_key_path = "~/.ssh/id_rsa"  # optional; use SSH agent if unset
+# swift_deploy_infra_repo = "https://github.com/AntonBronnfjell/tooling-openstack-infra-ansible_graphicsforge-infrastructure.git"

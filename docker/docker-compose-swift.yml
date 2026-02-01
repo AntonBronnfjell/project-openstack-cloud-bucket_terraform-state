@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  swift-proxy:
+    image: openstackloci/swift-proxy:latest
+    container_name: swift-proxy
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /etc/swift:/etc/swift:ro
+      - /srv/swift1:/srv/swift1:rw
+      - /srv/swift2:/srv/swift2:rw
+      - /srv/swift3:/srv/swift3:rw
+      - swift-logs:/var/log/swift
+    environment:
+      - SWIFT_CONFIG_DIR=/etc/swift
+    networks:
+      - swift-net
+    depends_on:
+      - swift-account
+      - swift-container
+      - swift-object
+    command: >
+      sh -c "
+      if [ ! -f /etc/swift/proxy-server.conf ]; then
+        echo 'Swift config not found, initializing...'
+        mkdir -p /etc/swift
+        cp /etc/swift/proxy-server.conf.sample /etc/swift/proxy-server.conf 2>/dev/null || true
+      fi
+      swift-proxy-server -v
+      "
+
+  swift-account:
+    image: openstackloci/swift-account:latest
+    container_name: swift-account
+    restart: unless-stopped
+    volumes:
+      - /srv/swift1:/srv/swift1:rw
+      - /srv/swift2:/srv/swift2:rw
+      - /srv/swift3:/srv/swift3:rw
+      - swift-logs:/var/log/swift
+    networks:
+      - swift-net
+    command: swift-account-server -v
+
+  swift-container:
+    image: openstackloci/swift-container:latest
+    container_name: swift-container
+    restart: unless-stopped
+    volumes:
+      - /srv/swift1:/srv/swift1:rw
+      - /srv/swift2:/srv/swift2:rw
+      - /srv/swift3:/srv/swift3:rw
+      - swift-logs:/var/log/swift
+    networks:
+      - swift-net
+    command: swift-container-server -v
+
+  swift-object:
+    image: openstackloci/swift-object:latest
+    container_name: swift-object
+    restart: unless-stopped
+    volumes:
+      - /srv/swift1:/srv/swift1:rw
+      - /srv/swift2:/srv/swift2:rw
+      - /srv/swift3:/srv/swift3:rw
+      - swift-logs:/var/log/swift
+    networks:
+      - swift-net
+    command: swift-object-server -v
+
+volumes:
+  swift-logs:
+
+networks:
+  swift-net:
+    driver: bridge
